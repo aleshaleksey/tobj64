@@ -78,7 +78,7 @@ fn simple_triangle_colored() {
 #[test]
 #[cfg(feature = "merging")]
 fn simple_quad_colored_merge() {
-    let m = crate::load_obj(
+    let m = crate::load_obj::<_, f32>(
         "obj/quad_colored_merge.obj",
         &crate::LoadOptions {
             merge_identical_points: true,
