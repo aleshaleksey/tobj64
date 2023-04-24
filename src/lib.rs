@@ -209,9 +209,6 @@ use std::{
 #[cfg(feature = "async")]
 use std::future::Future;
 
-#[cfg(feature = "merging")]
-use std::mem::size_of;
-
 #[cfg(feature = "ahash")]
 type HashMap<K, V> = ahash::AHashMap<K, V>;
 
@@ -251,18 +248,43 @@ pub const OFFLINE_RENDERING_LOAD_OPTIONS: LoadOptions = LoadOptions {
 };
 
 /// A simplified trait for parseable values;
-pub trait ParseableV: num::Num + FromStr + Copy + core::fmt::Debug + core::fmt::Display {}
+pub trait ParseableV:
+    Sized + num::Num + FromStr + Copy + core::fmt::Debug + core::fmt::Display
+{
+    type Hasheable: Copy + std::hash::Hash + std::cmp::Eq;
+}
 
-impl ParseableV for f64 {}
-impl ParseableV for f32 {}
-impl ParseableV for i64 {}
-impl ParseableV for u64 {}
-impl ParseableV for i32 {}
-impl ParseableV for u32 {}
-impl ParseableV for i16 {}
-impl ParseableV for u16 {}
-impl ParseableV for i8 {}
-impl ParseableV for u8 {}
+impl ParseableV for f64 {
+    type Hasheable = u64;
+}
+impl ParseableV for f32 {
+    type Hasheable = u32;
+}
+
+impl ParseableV for i64 {
+    type Hasheable = i64;
+}
+impl ParseableV for u64 {
+    type Hasheable = u64;
+}
+impl ParseableV for i32 {
+    type Hasheable = i32;
+}
+impl ParseableV for u32 {
+    type Hasheable = u32;
+}
+impl ParseableV for i16 {
+    type Hasheable = i16;
+}
+impl ParseableV for u16 {
+    type Hasheable = u16;
+}
+impl ParseableV for i8 {
+    type Hasheable = i8;
+}
+impl ParseableV for u8 {
+    type Hasheable = u8;
+}
 /// A mesh made up of triangles loaded from some `OBJ` file.
 ///
 /// It is assumed that all meshes will at least have positions, but normals and
@@ -464,7 +486,6 @@ pub struct LoadOptions {
     ///   }
     ///   ```
     #[cfg(feature = "reordering")]
-    #[derive(Debug, Default)]
     pub reorder_data: bool,
     /// Create a single index.
     ///
@@ -1431,11 +1452,14 @@ fn export_faces_multi_index<T: ParseableV>(
     if load_options.merge_identical_points {
         if !mesh.vertex_color.is_empty() {
             mesh.vertex_color_indices = mesh.indices.clone();
-            merge_identical_points::<3>(&mut mesh.vertex_color, &mut mesh.vertex_color_indices);
+            merge_identical_points::<f32, 3>(
+                &mut mesh.vertex_color,
+                &mut mesh.vertex_color_indices,
+            );
         }
-        merge_identical_points::<3>(&mut mesh.positions, &mut mesh.indices);
-        merge_identical_points::<3>(&mut mesh.normals, &mut mesh.normal_indices);
-        merge_identical_points::<2>(&mut mesh.texcoords, &mut mesh.texcoord_indices);
+        merge_identical_points::<T, 3>(&mut mesh.positions, &mut mesh.indices);
+        merge_identical_points::<T, 3>(&mut mesh.normals, &mut mesh.normal_indices);
+        merge_identical_points::<T, 2>(&mut mesh.texcoords, &mut mesh.texcoord_indices);
     }
 
     #[cfg(feature = "reordering")]
@@ -1462,7 +1486,7 @@ fn reorder_data<T: ParseableV>(mesh: &mut Mesh<T>) {
     } else {
         assert!(mesh.texcoords.len() == mesh.positions.len());
 
-        let mut new_texcoords = vec![0.0; mesh.positions.len()];
+        let mut new_texcoords = vec![T::zero(); mesh.positions.len()];
         mesh.texcoord_indices
             .iter()
             .zip(&mesh.indices)
@@ -1496,7 +1520,7 @@ fn reorder_data<T: ParseableV>(mesh: &mut Mesh<T>) {
     } else {
         assert!(mesh.normals.len() == mesh.positions.len());
 
-        let mut new_normals = vec![0.0; mesh.positions.len()];
+        let mut new_normals = vec![T::zero(); mesh.positions.len()];
         mesh.normal_indices
             .iter()
             .zip(&mesh.indices)
@@ -1521,15 +1545,13 @@ fn reorder_data<T: ParseableV>(mesh: &mut Mesh<T>) {
 fn merge_identical_points<T: ParseableV, const N: usize>(
     points: &mut Vec<T>,
     indices: &mut Vec<u32>,
-) where
-    [(); size_of::<[T; N]>()]:,
-{
+) {
     if indices.is_empty() {
         return;
     }
 
     let mut compressed_indices = Vec::new();
-    let mut canonical_indices = HashMap::<[u8; size_of::<[T; N]>()], u32>::new();
+    let mut canonical_indices = HashMap::<[T::Hasheable; N], u32>::new();
 
     let mut index = 0;
     *points = points
@@ -1539,7 +1561,7 @@ fn merge_identical_points<T: ParseableV, const N: usize>(
 
             // Ugly, but f32 has no Eq and no Hash.
             let bitpattern =
-                unsafe { std::mem::transmute::<&[T; N], &[u8; size_of::<[T; N]>()]>(position) };
+                unsafe { std::mem::transmute::<&[T; N], &[T::Hasheable; N]>(position) };
 
             match canonical_indices.get(bitpattern) {
                 Some(&other_index) => {
@@ -2049,7 +2071,7 @@ pub fn load_mtl_buf<B: BufRead>(reader: &mut B) -> MTLLoadResult {
 ///     cornell_box_obj.push("obj/cornell_box.obj");
 ///     let mut cornell_box_file = BufReader::new(File::open(cornell_box_obj.as_path()).unwrap());
 ///
-///     let m = tobj64::load_obj_buf_async(
+///     let m = tobj64::load_obj_buf_async::<_, f32, _, _>(
 ///         &mut cornell_box_file,
 ///         &tobj64::GPU_LOAD_OPTIONS,
 ///         move |p| {
@@ -2078,13 +2100,14 @@ pub fn load_mtl_buf<B: BufRead>(reader: &mut B) -> MTLLoadResult {
 ///     .await;
 /// };
 /// ```
-pub async fn load_obj_buf_async<B, ML, MLFut>(
+pub async fn load_obj_buf_async<B, V, ML, MLFut>(
     reader: &mut B,
     load_options: &LoadOptions,
     material_loader: ML,
-) -> LoadResult
+) -> LoadResult<V>
 where
     B: BufRead,
+    V: ParseableV,
     ML: Fn(String) -> MLFut,
     MLFut: Future<Output = MTLLoadResult>,
 {
