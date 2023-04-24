@@ -63,10 +63,7 @@
 //! ```
 //! use tobj64;
 //!
-//! let cornell_box = tobj64::load_obj::<_, f64>(
-//!     "obj/cornell_box.obj",
-//!     &tobj64::GPU_LOAD_OPTIONS,
-//! );
+//! let cornell_box = tobj64::load_obj::<_, f64>("obj/cornell_box.obj", &tobj64::GPU_LOAD_OPTIONS);
 //! assert!(cornell_box.is_ok());
 //!
 //! let (models, materials) = cornell_box.expect("Failed to load OBJ file");
@@ -190,9 +187,9 @@
 //! * [`reordering`](LoadOptions::reorder_data) – Adds support for reordering
 //!   the normal- and texture coordinate indices.
 //!
-//! * [`async`](load_obj_buf_async) – Adds support for async loading of obj files from a buffer,
-//!   with an async material loader. Useful in environments that do not
-//!   support blocking IO (e.g. WebAssembly).
+//! * [`async`](load_obj_buf_async) – Adds support for async loading of obj
+//!   files from a buffer, with an async material loader. Useful in environments
+//!   that do not support blocking IO (e.g. WebAssembly).
 #![cfg_attr(feature = "merging", allow(incomplete_features))]
 #![cfg_attr(feature = "merging", feature(generic_const_exprs))]
 #![allow(clippy::derive_partial_eq_without_eq)]
@@ -285,10 +282,7 @@ impl ParseableV for u8 {}
 /// empty.
 ///
 /// ```
-/// let cornell_box = tobj64::load_obj::<_, f64>(
-///     "obj/cornell_box.obj",
-///     &tobj64::GPU_LOAD_OPTIONS,
-/// );
+/// let cornell_box = tobj64::load_obj::<_, f64>("obj/cornell_box.obj", &tobj64::GPU_LOAD_OPTIONS);
 /// assert!(cornell_box.is_ok());
 ///
 /// let (models, materials) = cornell_box.unwrap();
@@ -410,13 +404,14 @@ impl<T: ParseableV> Default for Mesh<T> {
 ///     single_index: true,
 ///     ..Default::default()
 /// }
-///```
+/// ```
 ///
 /// There are convenience `const`s for the most common cases:
 ///
 /// * [`GPU_LOAD_OPTIONS`] – if you display meshes on the GPU/in realtime.
 ///
-/// * [`OFFLINE_RENDERING_LOAD_OPTIONS`] – if you're rendering meshes with e.g. an offline path tracer or the like.
+/// * [`OFFLINE_RENDERING_LOAD_OPTIONS`] – if you're rendering meshes with e.g.
+///   an offline path tracer or the like.
 #[cfg_attr(feature = "arb", derive(arbitrary::Arbitrary))]
 #[derive(Debug, Clone, Copy, Default)]
 pub struct LoadOptions {
@@ -772,7 +767,8 @@ enum Face {
 /// Parse the float information from the words. Words is an iterator over the
 /// float strings. Returns `false` if parsing failed.
 fn parse_floatn<T: ParseableV>(val_str: &mut SplitWhitespace, vals: &mut Vec<T>, n: usize) -> bool {
-    // If we are failing. We need to return before we add the failed parse to the value vector.
+    // If we are failing. We need to return before we add the failed parse to the
+    // value vector.
     let mut temp: Vec<T> = Vec::with_capacity(4);
     for p in val_str.take(n) {
         match FromStr::from_str(p) {
@@ -846,7 +842,7 @@ fn add_vertex<T: ParseableV>(
     match index_map.get(vert) {
         Some(&i) => mesh.indices.push(i),
         None => {
-            let v = vert.v as usize;
+            let v = vert.v;
             if v.saturating_mul(3).saturating_add(2) >= pos.len() {
                 return Err(LoadError::FaceVertexOutOfBounds);
             }
@@ -855,7 +851,7 @@ fn add_vertex<T: ParseableV>(
             mesh.positions.push(pos[v * 3 + 1]);
             mesh.positions.push(pos[v * 3 + 2]);
             if !texcoord.is_empty() && vert.vt != MISSING_INDEX {
-                let vt = vert.vt as usize;
+                let vt = vert.vt;
                 if vt * 2 + 1 >= texcoord.len() {
                     return Err(LoadError::FaceTexCoordOutOfBounds);
                 }
@@ -863,7 +859,7 @@ fn add_vertex<T: ParseableV>(
                 mesh.texcoords.push(texcoord[vt * 2 + 1]);
             }
             if !normal.is_empty() && vert.vn != MISSING_INDEX {
-                let vn = vert.vn as usize;
+                let vn = vert.vn;
                 if vn * 3 + 2 >= normal.len() {
                     return Err(LoadError::FaceNormalOutOfBounds);
                 }
@@ -1011,7 +1007,7 @@ fn add_vertex_multi_index<T: ParseableV>(
     match index_map.get(&vert.v) {
         Some(&i) => mesh.indices.push(i),
         None => {
-            let vertex = vert.v as usize;
+            let vertex = vert.v;
 
             if vertex.saturating_mul(3).saturating_add(2) >= pos.len() {
                 return Err(LoadError::FaceVertexOutOfBounds);
@@ -1028,7 +1024,7 @@ fn add_vertex_multi_index<T: ParseableV>(
 
             // Also add vertex colors to the mesh if present.
             if !v_color.is_empty() {
-                let v = vert.v as usize;
+                let v = vert.v;
 
                 if v_color.len() == 3 || v_color.len() == 4 {
                     mesh.vertex_color.push(v_color[0]);
@@ -1070,7 +1066,7 @@ fn add_vertex_multi_index<T: ParseableV>(
             match texcoord_index_map.get(&vert.vt) {
                 Some(&index) => mesh.texcoord_indices.push(index as _),
                 None => {
-                    let vt = vert.vt as usize;
+                    let vt = vert.vt;
 
                     if vt * 2 + 1 >= texcoord.len() {
                         return Err(LoadError::FaceTexCoordOutOfBounds);
@@ -1111,7 +1107,7 @@ fn add_vertex_multi_index<T: ParseableV>(
             match normal_index_map.get(&vert.vn) {
                 Some(&index) => normal_indices.push(index as _),
                 None => {
-                    let vn = vert.vn as usize;
+                    let vn = vert.vn;
 
                     if vn * 3 + 2 >= normal.len() {
                         return Err(LoadError::FaceNormalOutOfBounds);
@@ -1596,7 +1592,7 @@ where
             mat_path.to_owned()
         };
 
-        self::load_mtl(&full_path)
+        self::load_mtl(full_path)
     })
 }
 
