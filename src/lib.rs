@@ -846,7 +846,7 @@ fn add_vertex<T: ParseableV>(
     match index_map.get(vert) {
         Some(&i) => mesh.indices.push(i),
         None => {
-            let v = vert.v as usize;
+            let v = vert.v;
             if v.saturating_mul(3).saturating_add(2) >= pos.len() {
                 return Err(LoadError::FaceVertexOutOfBounds);
             }
@@ -855,7 +855,7 @@ fn add_vertex<T: ParseableV>(
             mesh.positions.push(pos[v * 3 + 1]);
             mesh.positions.push(pos[v * 3 + 2]);
             if !texcoord.is_empty() && vert.vt != MISSING_INDEX {
-                let vt = vert.vt as usize;
+                let vt = vert.vt;
                 if vt * 2 + 1 >= texcoord.len() {
                     return Err(LoadError::FaceTexCoordOutOfBounds);
                 }
@@ -863,7 +863,7 @@ fn add_vertex<T: ParseableV>(
                 mesh.texcoords.push(texcoord[vt * 2 + 1]);
             }
             if !normal.is_empty() && vert.vn != MISSING_INDEX {
-                let vn = vert.vn as usize;
+                let vn = vert.vn;
                 if vn * 3 + 2 >= normal.len() {
                     return Err(LoadError::FaceNormalOutOfBounds);
                 }
@@ -1011,7 +1011,7 @@ fn add_vertex_multi_index<T: ParseableV>(
     match index_map.get(&vert.v) {
         Some(&i) => mesh.indices.push(i),
         None => {
-            let vertex = vert.v as usize;
+            let vertex = vert.v;
 
             if vertex.saturating_mul(3).saturating_add(2) >= pos.len() {
                 return Err(LoadError::FaceVertexOutOfBounds);
@@ -1028,7 +1028,7 @@ fn add_vertex_multi_index<T: ParseableV>(
 
             // Also add vertex colors to the mesh if present.
             if !v_color.is_empty() {
-                let v = vert.v as usize;
+                let v = vert.v;
 
                 if v_color.len() == 3 || v_color.len() == 4 {
                     mesh.vertex_color.push(v_color[0]);
@@ -1070,7 +1070,7 @@ fn add_vertex_multi_index<T: ParseableV>(
             match texcoord_index_map.get(&vert.vt) {
                 Some(&index) => mesh.texcoord_indices.push(index as _),
                 None => {
-                    let vt = vert.vt as usize;
+                    let vt = vert.vt;
 
                     if vt * 2 + 1 >= texcoord.len() {
                         return Err(LoadError::FaceTexCoordOutOfBounds);
@@ -1111,7 +1111,7 @@ fn add_vertex_multi_index<T: ParseableV>(
             match normal_index_map.get(&vert.vn) {
                 Some(&index) => normal_indices.push(index as _),
                 None => {
-                    let vn = vert.vn as usize;
+                    let vn = vert.vn;
 
                     if vn * 3 + 2 >= normal.len() {
                         return Err(LoadError::FaceNormalOutOfBounds);
@@ -1596,7 +1596,7 @@ where
             mat_path.to_owned()
         };
 
-        self::load_mtl(&full_path)
+        self::load_mtl(full_path)
     })
 }
 
