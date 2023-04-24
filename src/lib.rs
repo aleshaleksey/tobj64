@@ -63,10 +63,7 @@
 //! ```
 //! use tobj64;
 //!
-//! let cornell_box = tobj64::load_obj::<_, f64>(
-//!     "obj/cornell_box.obj",
-//!     &tobj64::GPU_LOAD_OPTIONS,
-//! );
+//! let cornell_box = tobj64::load_obj::<_, f64>("obj/cornell_box.obj", &tobj64::GPU_LOAD_OPTIONS);
 //! assert!(cornell_box.is_ok());
 //!
 //! let (models, materials) = cornell_box.expect("Failed to load OBJ file");
@@ -190,9 +187,9 @@
 //! * [`reordering`](LoadOptions::reorder_data) – Adds support for reordering
 //!   the normal- and texture coordinate indices.
 //!
-//! * [`async`](load_obj_buf_async) – Adds support for async loading of obj files from a buffer,
-//!   with an async material loader. Useful in environments that do not
-//!   support blocking IO (e.g. WebAssembly).
+//! * [`async`](load_obj_buf_async) – Adds support for async loading of obj
+//!   files from a buffer, with an async material loader. Useful in environments
+//!   that do not support blocking IO (e.g. WebAssembly).
 #![cfg_attr(feature = "merging", allow(incomplete_features))]
 #![cfg_attr(feature = "merging", feature(generic_const_exprs))]
 #![allow(clippy::derive_partial_eq_without_eq)]
@@ -285,10 +282,7 @@ impl ParseableV for u8 {}
 /// empty.
 ///
 /// ```
-/// let cornell_box = tobj64::load_obj::<_, f64>(
-///     "obj/cornell_box.obj",
-///     &tobj64::GPU_LOAD_OPTIONS,
-/// );
+/// let cornell_box = tobj64::load_obj::<_, f64>("obj/cornell_box.obj", &tobj64::GPU_LOAD_OPTIONS);
 /// assert!(cornell_box.is_ok());
 ///
 /// let (models, materials) = cornell_box.unwrap();
@@ -410,13 +404,14 @@ impl<T: ParseableV> Default for Mesh<T> {
 ///     single_index: true,
 ///     ..Default::default()
 /// }
-///```
+/// ```
 ///
 /// There are convenience `const`s for the most common cases:
 ///
 /// * [`GPU_LOAD_OPTIONS`] – if you display meshes on the GPU/in realtime.
 ///
-/// * [`OFFLINE_RENDERING_LOAD_OPTIONS`] – if you're rendering meshes with e.g. an offline path tracer or the like.
+/// * [`OFFLINE_RENDERING_LOAD_OPTIONS`] – if you're rendering meshes with e.g.
+///   an offline path tracer or the like.
 #[cfg_attr(feature = "arb", derive(arbitrary::Arbitrary))]
 #[derive(Debug, Clone, Copy, Default)]
 pub struct LoadOptions {
@@ -772,7 +767,8 @@ enum Face {
 /// Parse the float information from the words. Words is an iterator over the
 /// float strings. Returns `false` if parsing failed.
 fn parse_floatn<T: ParseableV>(val_str: &mut SplitWhitespace, vals: &mut Vec<T>, n: usize) -> bool {
-    // If we are failing. We need to return before we add the failed parse to the value vector.
+    // If we are failing. We need to return before we add the failed parse to the
+    // value vector.
     let mut temp: Vec<T> = Vec::with_capacity(4);
     for p in val_str.take(n) {
         match FromStr::from_str(p) {

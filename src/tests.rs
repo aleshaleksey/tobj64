@@ -272,11 +272,11 @@ fn validate_cornell(models: Vec<crate::Model<f64>>, mats: Vec<crate::Material>) 
     let expect_indices = vec![0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9, 10, 8, 10, 11];
     // Will this be an issue with floating point precision?
     let expect_verts = vec![
-        552.8, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000,
-        559.2, 549.6, 0.000000, 559.2, 290.000000, 0.000000, 114.000000, 240.000000,
-        0.000000, 272.000000, 82.000000, 0.000000, 225.000000, 130.000000, 0.000000, 65.000000,
-        472.000000, 0.000000, 406.000000, 314.000000, 0.000000, 456.000000, 265.000000, 0.000000,
-        296.000000, 423.000000, 0.000000, 247.000000,
+        552.8, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 559.2, 549.6,
+        0.000000, 559.2, 290.000000, 0.000000, 114.000000, 240.000000, 0.000000, 272.000000,
+        82.000000, 0.000000, 225.000000, 130.000000, 0.000000, 65.000000, 472.000000, 0.000000,
+        406.000000, 314.000000, 0.000000, 456.000000, 265.000000, 0.000000, 296.000000, 423.000000,
+        0.000000, 247.000000,
     ];
     assert_eq!(mesh.indices, expect_indices);
     assert_eq!(mesh.positions, expect_verts);
@@ -298,8 +298,8 @@ fn validate_cornell(models: Vec<crate::Model<f64>>, mats: Vec<crate::Material>) 
     let mesh = &models[2].mesh;
     assert_eq!(mesh.material_id, Some(0));
     let expect_verts = vec![
-        556.000000, 548.8, 0.000000, 556.000000, 548.8, 559.2, 0.000000, 548.8,
-        559.2, 0.000000, 548.8, 0.000000,
+        556.000000, 548.8, 0.000000, 556.000000, 548.8, 559.2, 0.000000, 548.8, 559.2, 0.000000,
+        548.8, 0.000000,
     ];
     assert_eq!(mesh.indices, expect_indices);
     assert_eq!(mesh.positions, expect_verts);
@@ -309,8 +309,8 @@ fn validate_cornell(models: Vec<crate::Model<f64>>, mats: Vec<crate::Material>) 
     let mesh = &models[3].mesh;
     assert_eq!(mesh.material_id, Some(0));
     let expect_verts = vec![
-        549.6, 0.000000, 559.2, 0.000000, 0.000000, 559.2, 0.000000, 548.8,
-        559.2, 556.000000, 548.8, 559.2,
+        549.6, 0.000000, 559.2, 0.000000, 0.000000, 559.2, 0.000000, 548.8, 559.2, 556.000000,
+        548.8, 559.2,
     ];
     assert_eq!(mesh.indices, expect_indices);
     assert_eq!(mesh.positions, expect_verts);
@@ -320,8 +320,8 @@ fn validate_cornell(models: Vec<crate::Model<f64>>, mats: Vec<crate::Material>) 
     let mesh = &models[4].mesh;
     assert_eq!(mesh.material_id, Some(4));
     let expect_verts = vec![
-        0.000000, 0.000000, 559.2, 0.000000, 0.000000, 0.000000, 0.000000, 548.8,
-        0.000000, 0.000000, 548.8, 559.2,
+        0.000000, 0.000000, 559.2, 0.000000, 0.000000, 0.000000, 0.000000, 548.8, 0.000000,
+        0.000000, 548.8, 559.2,
     ];
     assert_eq!(mesh.indices, expect_indices);
     assert_eq!(mesh.positions, expect_verts);
@@ -331,8 +331,8 @@ fn validate_cornell(models: Vec<crate::Model<f64>>, mats: Vec<crate::Material>) 
     let mesh = &models[5].mesh;
     assert_eq!(mesh.material_id, Some(1));
     let expect_verts = vec![
-        552.8, 0.000000, 0.000000, 549.6, 0.000000, 559.2, 556.000000, 548.8,
-        559.2, 556.000000, 548.8, 0.000000,
+        552.8, 0.000000, 0.000000, 549.6, 0.000000, 559.2, 556.000000, 548.8, 559.2, 556.000000,
+        548.8, 0.000000,
     ];
     assert_eq!(mesh.indices, expect_indices);
     assert_eq!(mesh.positions, expect_verts);
