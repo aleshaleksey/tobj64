@@ -16,6 +16,14 @@ jobs:
         run: cargo test --verbose
       - name: Cargo Format
         run: cargo fmt -- --check
+    build_wasm:
+      runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@v2
+      - name: Build
+        run: cargo build --verbose --target=wasm32-unknown-unknown --no-default-features
+      - name: Build Tests
+        run: cargo test --verbose --no-run --target=wasm32-unknown-unknown --no-default-features
     build_windows:
       runs-on: windows-latest
       steps:
