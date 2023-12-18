@@ -61,10 +61,8 @@ parameter and its value.
 
 *  [`ahash`](https://crates.io/crates/ahash) – On by default. Use
    [`AHashMap`](https://docs.rs/ahash/latest/ahash/struct.AHashMap.html) for
-   hashing when reading files and merging vertices. To disable and use the
-   slower
-   [`HashMap`](https://doc.rust-lang.org/std/collections/hash_map/struct.HashMap.html)
-   instead, unset default features in `Cargo.toml`:
+   hashing when reading files and merging vertices. To disable and use
+   [`FnvHashMap`](https://doc.rs.fnv) instead, unset default features in `Cargo.toml`:
 
    ```toml
    [dependencies.tobj]
@@ -88,10 +86,11 @@ parameter and its value.
 
 Rust docs can be found [here](https://docs.rs/tobj/).
 
-## Installation
-
-Add the [crate](https://crates.io/crates/tobj) as a dependency in your
-`Cargo.toml` and you’re all set!
+NB: This fork diverges from the [tobj](https://crates.io/crates/tobj) crate as it was
+created to allow the use of multiple different primitive types for coordinate values.
+The original crate has now caught up, although it uses a slightly different (compile-time)
+mechanism to achieve this. In addition `tobj64` now uses `FnvHashMap` instead of `HashMap`
+(see above).
 
 ## Example
 
