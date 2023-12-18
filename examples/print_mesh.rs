@@ -1,7 +1,6 @@
 fn main() {
     let obj_file = std::env::args()
-        .skip(1)
-        .next()
+        .nth(1)
         .expect("A .obj file to print is required");
 
     let (models, materials) =

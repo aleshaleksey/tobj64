@@ -170,7 +170,7 @@
 //!
 //! * [`ahash`](https://crates.io/crates/ahash) – On by default. Use [`AHashMap`](https://docs.rs/ahash/latest/ahash/struct.AHashMap.html)
 //!   for hashing when reading files and merging vertices. To disable and use
-//!   the slower [`HashMap`](std::collections::HashMap) instead, unset default
+//!   the potentially slower [`FnvHashMap`](https://docs.rs/fnv) instead, unset default
 //! features in `Cargo.toml`:
 //!
 //!   ```toml
@@ -213,7 +213,29 @@ use std::future::Future;
 type HashMap<K, V> = ahash::AHashMap<K, V>;
 
 #[cfg(not(feature = "ahash"))]
-type HashMap<K, V> = std::collections::HashMap<K, V>;
+/// We use [`FnvHashMap`](https://docs.rs/fnv) instead of the standard [`HashMap`](std::collections::HashMap)
+/// as in many cases it has superior performance characteristics, and is still widely
+/// supported where [`AHashMap`](https://docs.rs/ahash/latest/ahash/struct.AHashMap.html)
+/// is not.
+type HashMap<K, V> = fnv::FnvHashMap<K, V>;
+
+/// This is used to get around `FnvHashMap`'s lack of `FnvHashMap::new`.
+trait NewHashMap {
+    fn new_map() -> Self;
+}
+
+impl<K, V> NewHashMap for HashMap<K, V> {
+    #[cfg(feature = "ahash")]
+    fn new_map() -> Self {
+        Self::new()
+    }
+    
+    #[cfg(not(feature = "ahash"))]
+    fn new_map() -> Self {
+        Self::default()
+    }
+}
+
 
 /// Typical [`LoadOptions`] for using meshes in a GPU/relatime context.
 ///
@@ -654,7 +676,7 @@ impl Default for Material {
             shininess_texture: String::new(),
             dissolve_texture: String::new(),
             illumination_model: None,
-            unknown_param: HashMap::new(),
+            unknown_param: HashMap::new_map(),
         }
     }
 }
@@ -922,7 +944,7 @@ fn export_faces<T: ParseableV>(
     mat_id: Option<usize>,
     load_options: &LoadOptions,
 ) -> Result<Mesh<T>, LoadError> {
-    let mut index_map = HashMap::new();
+    let mut index_map = HashMap::new_map();
     let mut mesh = Mesh {
         material_id: mat_id,
         ..Default::default()
@@ -1160,9 +1182,9 @@ fn export_faces_multi_index<T: ParseableV>(
     mat_id: Option<usize>,
     load_options: &LoadOptions,
 ) -> Result<Mesh<T>, LoadError> {
-    let mut index_map = HashMap::new();
-    let mut normal_index_map = HashMap::new();
-    let mut texcoord_index_map = HashMap::new();
+    let mut index_map = HashMap::new_map();
+    let mut normal_index_map = HashMap::new_map();
+    let mut texcoord_index_map = HashMap::new_map();
 
     let mut mesh = Mesh {
         material_id: mat_id,
@@ -1709,7 +1731,7 @@ where
 
     let mut models = Vec::new();
     let mut materials = Vec::new();
-    let mut mat_map = HashMap::new();
+    let mut mat_map = HashMap::new_map();
 
     let mut tmp_pos = Vec::new();
     let mut tmp_v_color = Vec::new();
@@ -1908,7 +1930,7 @@ where
 /// Load the various materials in a `MTL` buffer.
 pub fn load_mtl_buf<B: BufRead>(reader: &mut B) -> MTLLoadResult {
     let mut materials = Vec::new();
-    let mut mat_map = HashMap::new();
+    let mut mat_map = HashMap::new_map();
     // The current material being parsed
     let mut cur_mat = Material::default();
     for line in reader.lines() {
@@ -2117,7 +2139,7 @@ where
 
     let mut models = Vec::new();
     let mut materials = Vec::new();
-    let mut mat_map = HashMap::new();
+    let mut mat_map = HashMap::new_map();
 
     let mut tmp_pos = Vec::new();
     let mut tmp_v_color = Vec::new();
