@@ -229,13 +229,12 @@ impl<K, V> NewHashMap for HashMap<K, V> {
     fn new_map() -> Self {
         Self::new()
     }
-    
+
     #[cfg(not(feature = "ahash"))]
     fn new_map() -> Self {
         Self::default()
     }
 }
-
 
 /// Typical [`LoadOptions`] for using meshes in a GPU/relatime context.
 ///
